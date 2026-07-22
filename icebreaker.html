@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#201A26" />
+<title>Icebreaker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: radial-gradient(120% 90% at 50% 0%, #2C2333 0%, #201A26 55%, #17121C 100%);
+    font-family: 'Sora', system-ui, sans-serif;
+    color: #FBF7EE;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 18px calc(12px + env(safe-area-inset-bottom));
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .fade { animation: fadeIn .4s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fade, .card-inner, .next-btn, .deck-btn { animation: none !important; transition: none !important; } }
+
+  /* ---------- HOME ---------- */
+  #home { width: 100%; max-width: 420px; display: flex; flex-direction: column; flex: 1; }
+  header { text-align: center; margin-bottom: 26px; }
+  .logo-mark { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+  .logo-dot { width: 12px; height: 16px; border-radius: 3px; display: inline-block; transform: rotate(-4deg); }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+  .subtitle { font-size: 14px; opacity: 0.65; margin-top: 8px; font-weight: 500; }
+
+  .deck-list { display: flex; flex-direction: column; gap: 12px; }
+  .deck-btn {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(251,247,238,0.05);
+    border: 1px solid rgba(251,247,238,0.1);
+    border-radius: 18px; padding: 14px 16px;
+    cursor: pointer; text-align: left; color: inherit;
+    font-family: inherit;
+    transition: transform .15s ease;
+    width: 100%;
+  }
+  .deck-btn:hover, .deck-btn:focus-visible { transform: translateY(-2px); }
+  .deck-btn:active { transform: translateY(0) scale(.99); }
+  .deck-btn:focus-visible { outline: 3px solid #FBF7EE; outline-offset: 3px; }
+
+  .pile-wrap { position: relative; width: 46px; height: 62px; flex-shrink: 0; }
+  .pile-card {
+    position: absolute; inset: 0; border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pile-pattern { width: 22px; height: 34px; border-radius: 5px; border: 2px solid rgba(0,0,0,0.25); }
+
+  .deck-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .deck-name { font-size: 17px; font-weight: 700; }
+  .deck-tag { font-size: 12.5px; opacity: 0.7; }
+  .deck-count { font-size: 10.5px; opacity: 0.45; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; }
+  .deck-arrow { font-size: 18px; font-weight: 700; }
+
+  .surprise-btn {
+    margin-top: 16px; background: transparent;
+    border: 1.5px dashed rgba(251,247,238,0.35);
+    border-radius: 16px; padding: 13px 16px;
+    color: #FBF7EE; font-family: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: border-color .15s ease, transform .12s ease;
+  }
+  .surprise-btn:hover { border-color: #FBF7EE; transform: translateY(-1px); }
+
+  .reset-btn {
+    margin-top: 10px; align-self: center; background: none; border: none;
+    color: #FBF7EE; opacity: 0.4; font-family: inherit; font-size: 12px; font-weight: 600;
+    cursor: pointer; padding: 6px 10px;
+  }
+  .reset-btn:hover { opacity: 0.7; }
+
+  /* ---------- PLAY ---------- */
+  #play { width: 100%; max-width: 420px; display: none; flex-direction: column; flex: 1; }
+  .play-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .back-btn {
+    background: none; border: none; color: #FBF7EE; opacity: 0.7;
+    font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; padding: 6px 4px;
+  }
+  .play-deck-chip { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; letter-spacing: 0.02em; }
+  .counter { font-size: 12.5px; opacity: 0.55; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+
+  .card-stage { flex: 1; display: flex; align-items: center; justify-content: center; perspective: 1200px; padding: 8px 0; }
+  .card-btn { background: none; border: none; padding: 0; cursor: pointer; width: 100%; max-width: 320px; }
+  .card-btn:focus-visible { outline: 3px solid #FBF7EE; outline-offset: 4px; border-radius: 22px; }
+  .card { position: relative; width: 100%; aspect-ratio: 5 / 7; transform-style: preserve-3d; }
+  .card-inner { transition: transform .5s cubic-bezier(.3,.7,.3,1); transform-style: preserve-3d; width: 100%; height: 100%; position: relative; }
+  .card-inner.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute; inset: 0; border-radius: 22px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 26px;
+  }
+  .card-back { }
+  .card-back-inner {
+    position: absolute; inset: 14px; border-radius: 14px; border: 2px solid;
+    opacity: 0.85; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  }
+  .card-back-dot { width: 14px; height: 14px; border-radius: 50%; background: currentColor; opacity: 0.9; }
+  .card-back-label { font-size: 13px; font-weight: 800; letter-spacing: 0.22em; }
+  .card-back-hint { font-size: 11px; opacity: 0.6; font-weight: 600; letter-spacing: 0.06em; position: absolute; bottom: 18px; }
+
+  .card-front {
+    background: #FBF7EE; color: #241C14; transform: rotateY(180deg);
+  }
+  .q-deck-tag { font-size: 10.5px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 18px; }
+  .question {
+    font-family: 'Source Serif 4', Georgia, serif; font-size: 23px; line-height: 1.4; font-weight: 500;
+    text-align: center; margin: 0; text-wrap: balance;
+  }
+  .q-footer-bar { position: absolute; bottom: 22px; width: 44px; height: 5px; border-radius: 3px; }
+
+  .play-actions { min-height: 74px; display: flex; align-items: center; justify-content: center; margin-top: 10px; }
+  .flip-hint { font-size: 13px; opacity: 0.5; font-weight: 500; }
+  .next-btn {
+    border: none; border-radius: 999px; padding: 15px 34px; font-family: inherit;
+    font-size: 15.5px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .next-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  .next-btn:active { transform: translateY(0); }
+  .next-btn:focus-visible { outline: 3px solid #FBF7EE; outline-offset: 3px; }
+
+  footer { font-size: 10.5px; opacity: 0.3; margin-top: 18px; letter-spacing: 0.08em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div id="home" class="fade">
+  <header>
+    <div class="logo-mark" id="logoMark"></div>
+    <h1>Icebreaker</h1>
+    <p class="subtitle">Pick a color. Draw a card. Actually talk.</p>
+  </header>
+  <div class="deck-list" id="deckList"></div>
+  <button class="surprise-btn" id="surpriseBtn">🎲&nbsp; Surprise me — any color</button>
+  <button class="reset-btn" id="resetBtn">↺ Reset question memory</button>
+</div>
+
+<div id="play">
+  <div class="play-top">
+    <button class="back-btn" id="backBtn">← Decks</button>
+    <span class="play-deck-chip" id="playChip"></span>
+    <span class="counter" id="counter"></span>
+  </div>
+
+  <div class="card-stage">
+    <button class="card-btn" id="cardBtn" aria-label="Tap to flip the card">
+      <div class="card">
+        <div class="card-inner" id="cardInner">
+          <div class="card-face card-back" id="cardBack">
+            <div class="card-back-inner" id="cardBackInner">
+              <span class="card-back-dot"></span>
+              <span class="card-back-label" id="cardBackLabel"></span>
+              <span class="card-back-hint">tap to flip</span>
+            </div>
+          </div>
+          <div class="card-face card-front">
+            <span class="q-deck-tag" id="qDeckTag"></span>
+            <p class="question" id="questionText"></p>
+            <span class="q-footer-bar" id="qFooterBar"></span>
+          </div>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <div class="play-actions" id="playActions">
+    <p class="flip-hint">Tap the card to reveal the question</p>
+  </div>
+</div>
+
+<footer>Made for real conversations</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// QUESTION BANK — 50 per deck, original content
+// ─────────────────────────────────────────────
+const DECKS = {
+  yellow: {
+    name: "Fun & Light",
+    tagline: "Easy laughs. Zero pressure.",
+    color: "#F0B429", dark: "#8C6410", text: "#3D2E05",
+    questions: [
+      "What's the most useless talent you have?","What food do you refuse to share with anyone?","If animals could talk, which would be the rudest?","What's the weirdest thing you've ever eaten?","What song do you secretly know every word to?","What would your autobiography be titled?","What's your most irrational fear?","If you had to eat one meal every day forever, what would it be?","What's the worst haircut you've ever had?","What fictional place would you move to tomorrow?","What's your go-to karaoke song?","What's the strangest compliment you've ever received?","If you were a kitchen appliance, which one would you be?","What's a movie you've watched way too many times?","What's the pettiest hill you'll die on?","What smell instantly takes you back to childhood?","What's your most controversial food opinion?","If you could only text one emoji forever, which one?","What's the funniest thing a kid has ever said to you?","What trend did you fully participate in and now regret?","What's your hidden guilty pleasure show?","If your life had a theme song, what would it be?","What's the dumbest way you've ever injured yourself?","Would you rather fight one horse-sized duck or a hundred duck-sized horses?","What's a word you always mispronounce?","What's the best gift you've ever received?","What job would you be terrible at?","What's your weirdest habit when you're home alone?","If you won the lottery, what's the first dumb thing you'd buy?","What's your favorite smell that most people find weird?","What celebrity would play you in a movie?","What's the longest you've gone without sleep, and why?","What's a food combo you love that others find gross?","If you could instantly master one instrument, which one?","What was your first screen name or email address?","What's the worst fashion choice you ever committed to?","What board game turns you into a monster?","What's something you believed way too long as a kid?","If you opened a restaurant, what would it serve?","What's your most-used app that you're embarrassed about?","What superpower would actually ruin your life?","What's the best prank you've pulled or seen?","What animal do you think you were in a past life?","What's a small thing that makes your whole day better?","What's your unpopular opinion about a beloved movie?","If you had a warning label, what would it say?","What's the most spontaneous thing you've ever done?","What's your favorite useless fact?","What would you do with an extra hour every day?","What's the weirdest dream you remember?"
+    ]
+  },
+  blue: {
+    name: "Deep",
+    tagline: "For when the room gets quiet.",
+    color: "#3D6FD6", dark: "#1E3A78", text: "#0E1E42",
+    questions: [
+      "What's something you've changed your mind about in the last year?","What do you wish more people asked you about?","When did you last feel truly proud of yourself?","What's a belief you hold that you can't fully explain?","What part of your younger self do you miss?","What's the hardest goodbye you've ever said?","What do you think people misunderstand about you?","What's a moment that quietly changed your life?","What are you still learning to forgive yourself for?","Who shaped you the most without knowing it?","What does home mean to you?","What's a fear you've outgrown?","When do you feel most like yourself?","What's something you pretend to be okay with but aren't?","What would you tell your 15-year-old self?","What's the loneliest you've ever felt?","What do you hope people say about you when you're not in the room?","What's a compliment you've never forgotten?","What does love look like to you in everyday actions?","What's something you're afraid to want?","When was the last time you cried, and why?","What's a memory you return to when things get hard?","What do you think your purpose is right now?","What's something you've survived that you rarely talk about?","How has your definition of success changed?","What relationship in your life needs more attention?","What's a question you're scared to know the answer to?","What do you need to hear more often?","What's the kindest thing a stranger has done for you?","What are you holding onto that you should let go of?","When did you realize you had become an adult?","What's a way you're different from your parents that you're proud of?","What's a way you're similar to them that surprises you?","What does peace feel like for you?","What's something beautiful you saw recently that stuck with you?","If you could relive one ordinary day, which would it be?","What's the bravest thing you've ever done?","What do you wish you could apologize for?","What's a truth about yourself you took years to accept?","Who do you feel safest with, and why?","What's something you do to feel less alone?","What dream have you quietly given up on — and are you at peace with that?","What's the best advice you've ever ignored?","What part of your life feels unfinished?","What would you do differently if nobody judged you?","What's a loss that shaped who you are?","What are you most grateful for that you never say out loud?","What does being understood feel like to you?","What's one thing you hope never changes about your life?","If this was your last conversation with someone, what would you want them to know?"
+    ]
+  },
+  green: {
+    name: "Growth & Values",
+    tagline: "Who are you becoming?",
+    color: "#3F9B63", dark: "#1D5A36", text: "#0B2E1A",
+    questions: [
+      "What habit are you proudest of building?","What's a boundary you've learned to set?","What does discipline mean to you?","What's the best decision you made in the last five years?","What skill are you currently working on?","What's a mistake that taught you the most?","How do you handle failure differently now than before?","What value would you never compromise on?","What's something you quit that improved your life?","Who do you want to become in the next five years?","What's a hard conversation you're glad you had?","What does integrity look like when no one's watching?","What feedback changed how you operate?","What's a comfort zone you're trying to leave?","How do you recharge when you're burnt out?","What's a book, talk, or idea that rewired your thinking?","What does \"enough\" mean to you — money, success, stuff?","What's a promise you've kept to yourself?","What role does faith or spirituality play in your life?","What's something you're unlearning?","How do you decide who gets your trust?","What's your relationship with money, honestly?","What daily choice has the biggest impact on your mood?","What's a sacrifice you made that was worth it?","When did you last change your routine, and what happened?","What's a value your family taught you that you kept?","What's one you consciously dropped?","How do you want to handle conflict better?","What are you doing today that your future self will thank you for?","What's the difference between who you are and who you present?","What motivates you when nobody's cheering?","What's a goal you're scared to say out loud?","How do you know when it's time to walk away from something?","What does self-respect require of you?","What's a lesson you keep having to relearn?","How has your circle of friends changed as you've grown?","What's something you used to judge people for that you now understand?","What's your definition of a life well lived?","What are you reading, watching, or listening to that's making you better?","What's a weakness you've turned into a strength?","How do you celebrate your wins — or do you?","What would you attempt if you knew you couldn't fail?","What does rest mean to you, and do you get enough?","What's one thing you want to master before you die?","How do you deal with envy when it shows up?","What's a standard you refuse to lower?","What legacy do you want to leave?","What's the next uncomfortable thing you need to do?","Who holds you accountable, and how?","If you kept living exactly like today for 10 years, where would you end up?"
+    ]
+  },
+  red: {
+    name: "Bold & Spicy",
+    tagline: "Say it. We dare you.",
+    color: "#D64550", dark: "#7E1F27", text: "#3C0A0E",
+    questions: [
+      "What's something you've never told anyone in this room?","What's the biggest risk you've ever taken for love?","What's a secret talent nobody here knows about?","What's the most trouble you got into as a teenager?","Have you ever ghosted someone? What's the real reason?","What's a lie you've told that you got away with?","What's your biggest ick?","Who was your worst date ever, and what happened?","What's something you did that your parents still don't know about?","What's the most jealous you've ever been?","Have you ever been caught doing something embarrassing?","What's your most toxic trait — be honest?","What's the pettiest reason you've stopped talking to someone?","What's a text you regret sending?","Who in this room would you trade lives with for a week?","What's the wildest rumor you've heard about yourself?","What's something you judge people for, even though you know you shouldn't?","Have you ever snooped through someone's phone?","What's the most embarrassing thing in your search history right now?","What's a red flag you've ignored — more than once?","What's the boldest move you've ever made on someone?","What's something you pretend to like for someone else?","What's the biggest secret you've kept for a friend?","Have you ever taken credit for something you didn't do?","What's your guiltiest pleasure that you'd deny in public?","What's the worst advice you've ever given on purpose?","Who was your first crush, and would they be surprised to know?","What's the most dramatic exit you've ever made?","What's something you stole — even something tiny?","What's your most unhinged 3am thought lately?","Have you ever pretended not to see someone in public? Who?","What's the longest grudge you've ever held?","What would your ex say is your worst quality?","What's the most impulsive purchase you've hidden from someone?","Have you ever lied in this game or one like it?","What's something everyone thinks you're good at, but you're faking?","What's the strangest place you've fallen asleep?","What's a hill you'd die on that would make people mad?","What's the most awkward encounter you've had with a stranger?","Have you ever crashed a party or event you weren't invited to?","What's the worst thing you've said about someone who then walked in?","What's a dealbreaker of yours that people think is too harsh?","What's the most chaotic thing you've done out of spite?","Who's the last person you stalked on social media?","What's something you'd do if you were invisible for a day?","What's the biggest bullet you've dodged in a relationship?","What rule do you break regularly without guilt?","What's a confession you've been waiting for the right moment to make?","If your group chat leaked, how bad would it be?","Who in this room do you think has the wildest secret?"
+    ]
+  }
+};
+
+const DECK_ORDER = ["yellow", "blue", "green", "red"];
+const PILE_TILTS = [-3, 2, -1.5, 0];
+
+// ─────────────────────────────────────────────
+// PERSISTENCE — real localStorage, since this file
+// runs standalone in your own browser, not a sandbox.
+// ─────────────────────────────────────────────
+const STORAGE_KEY = "icebreaker.remaining.v1";
+
+function fullDeckIndices(key) {
+  return DECKS[key].questions.map((_, i) => i);
+}
+
+function loadRemaining() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) throw new Error("none");
+    const parsed = JSON.parse(raw);
+    const clean = {};
+    for (const key of DECK_ORDER) {
+      const total = DECKS[key].questions.length;
+      const arr = Array.isArray(parsed[key])
+        ? parsed[key].filter((n) => Number.isInteger(n) && n >= 0 && n < total)
+        : null;
+      clean[key] = arr && arr.length > 0 ? arr : fullDeckIndices(key);
+    }
+    return clean;
+  } catch {
+    const base = {};
+    for (const key of DECK_ORDER) base[key] = fullDeckIndices(key);
+    return base;
+  }
+}
+
+function saveRemaining(remaining) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining)); } catch {}
+}
+
+let remaining = loadRemaining();
+let activeDeck = null;
+let surprise = false;
+let currentIdx = null;
+let flipped = false;
+
+function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Draw a random unseen question; refill (excluding the just-asked one) when the pool empties.
+function draw(key) {
+  let pool = remaining[key] && remaining[key].length > 0 ? remaining[key] : fullDeckIndices(key);
+  const pick = randomFrom(pool);
+  const nextPool = pool.filter((n) => n !== pick);
+  remaining[key] = nextPool.length > 0 ? nextPool : fullDeckIndices(key).filter((n) => n !== pick);
+  saveRemaining(remaining);
+  currentIdx = pick;
+}
+
+function drawnCount(key) {
+  return DECKS[key].questions.length - (remaining[key]?.length ?? 0);
+}
+
+// ─────────────────────────────────────────────
+// RENDER: HOME
+// ─────────────────────────────────────────────
+const logoMark = document.getElementById("logoMark");
+DECK_ORDER.forEach((k) => {
+  const dot = document.createElement("span");
+  dot.className = "logo-dot";
+  dot.style.background = DECKS[k].color;
+  logoMark.appendChild(dot);
+});
+
+const deckList = document.getElementById("deckList");
+DECK_ORDER.forEach((key) => {
+  const d = DECKS[key];
+  const btn = document.createElement("button");
+  btn.className = "deck-btn";
+  btn.setAttribute("aria-label", `Play the ${d.name} deck`);
+
+  const pileWrap = document.createElement("span");
+  pileWrap.className = "pile-wrap";
+  pileWrap.style.display = "inline-block";
+  PILE_TILTS.forEach((t, idx) => {
+    const pc = document.createElement("span");
+    pc.className = "pile-card";
+    pc.style.background = idx === PILE_TILTS.length - 1 ? d.color : d.dark;
+    pc.style.transform = `rotate(${t}deg) translateY(${(PILE_TILTS.length - 1 - idx) * -2}px)`;
+    pc.style.opacity = idx === PILE_TILTS.length - 1 ? "1" : "0.55";
+    if (idx === PILE_TILTS.length - 1) {
+      const pattern = document.createElement("span");
+      pattern.className = "pile-pattern";
+      pc.appendChild(pattern);
+    }
+    pileWrap.appendChild(pc);
+  });
+
+  const meta = document.createElement("span");
+  meta.className = "deck-meta";
+  meta.innerHTML = `
+    <span class="deck-name" style="color:${d.color}">${d.name}</span>
+    <span class="deck-tag">${d.tagline}</span>
+    <span class="deck-count">50 cards</span>
+  `;
+
+  const arrow = document.createElement("span");
+  arrow.className = "deck-arrow";
+  arrow.style.color = d.color;
+  arrow.textContent = "→";
+
+  btn.appendChild(pileWrap);
+  btn.appendChild(meta);
+  btn.appendChild(arrow);
+  btn.addEventListener("click", () => startDeck(key));
+  deckList.appendChild(btn);
+});
+
+document.getElementById("surpriseBtn").addEventListener("click", startSurprise);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  for (const k of DECK_ORDER) remaining[k] = fullDeckIndices(k);
+  saveRemaining(remaining);
+});
+document.getElementById("backBtn").addEventListener("click", () => {
+  document.getElementById("play").style.display = "none";
+  document.getElementById("home").style.display = "flex";
+  flipped = false;
+});
+
+// ─────────────────────────────────────────────
+// PLAY SCREEN
+// ─────────────────────────────────────────────
+const homeEl = document.getElementById("home");
+const playEl = document.getElementById("play");
+const cardBtn = document.getElementById("cardBtn");
+const cardInner = document.getElementById("cardInner");
+const cardBack = document.getElementById("cardBack");
+const cardBackInner = document.getElementById("cardBackInner");
+const cardBackLabel = document.getElementById("cardBackLabel");
+const qDeckTag = document.getElementById("qDeckTag");
+const questionText = document.getElementById("questionText");
+const qFooterBar = document.getElementById("qFooterBar");
+const playChip = document.getElementById("playChip");
+const counter = document.getElementById("counter");
+const playActions = document.getElementById("playActions");
+
+function startDeck(key) {
+  surprise = false;
+  activeDeck = key;
+  flipped = false;
+  draw(key);
+  showPlayScreen();
+}
+
+function startSurprise() {
+  const key = DECK_ORDER[Math.floor(Math.random() * DECK_ORDER.length)];
+  surprise = true;
+  activeDeck = key;
+  flipped = false;
+  draw(key);
+  showPlayScreen();
+}
+
+function showPlayScreen() {
+  homeEl.style.display = "none";
+  playEl.style.display = "flex";
+  renderCard();
+}
+
+function renderCard() {
+  const d = DECKS[activeDeck];
+  cardInner.classList.remove("flipped");
+
+  cardBack.style.background = d.color;
+  cardBack.style.color = d.text;
+  cardBackInner.style.borderColor = d.text;
+  cardBackLabel.textContent = d.name.toUpperCase();
+
+  qDeckTag.textContent = d.name;
+  qDeckTag.style.color = d.dark;
+  questionText.textContent = d.questions[currentIdx];
+  qFooterBar.style.background = d.color;
+
+  playChip.textContent = (surprise ? "🎲 " : "") + d.name;
+  playChip.style.background = d.color;
+  playChip.style.color = d.text;
+
+  counter.textContent = `${drawnCount(activeDeck)} / ${d.questions.length}`;
+
+  playActions.innerHTML = '<p class="flip-hint">Tap the card to reveal the question</p>';
+}
+
+cardBtn.addEventListener("click", () => {
+  flipped = !flipped;
+  cardInner.classList.toggle("flipped", flipped);
+  if (flipped) {
+    const d = DECKS[activeDeck];
+    const btn = document.createElement("button");
+    btn.className = "next-btn";
+    btn.textContent = "Next card →";
+    btn.style.background = d.color;
+    btn.style.color = d.text;
+    btn.addEventListener("click", nextCard);
+    playActions.innerHTML = "";
+    playActions.appendChild(btn);
+  } else {
+    playActions.innerHTML = '<p class="flip-hint">Tap the card to reveal the question</p>';
+  }
+});
+
+function nextCard() {
+  flipped = false;
+  cardInner.classList.remove("flipped");
+  setTimeout(() => {
+    let key = activeDeck;
+    if (surprise) {
+      key = DECK_ORDER[Math.floor(Math.random() * DECK_ORDER.length)];
+      activeDeck = key;
+    }
+    draw(key);
+    renderCard();
+  }, 220);
+}
+</script>
+</body>
+</html>
